@@ -13,7 +13,7 @@
 
 ## 环境前置检查
 
-每次启动时必须按顺序检查以下环境依赖，**缺少则引导安装，不可跳过**：
+每次启动时必须按顺序检查，**缺少则引导安装，不可跳过**：
 
 ### 1. Docker 检查
 
@@ -21,10 +21,7 @@
 运行: docker info
 ├── 成功 → Docker 可用，继续
 └── 失败 → Docker 未安装或未运行
-    ├── 未安装 → 提示主人安装 Docker Desktop:
-    │   macOS: https://docs.docker.com/desktop/install/mac-install/
-    │   Windows: https://docs.docker.com/desktop/install/windows-install/
-    │   Linux: curl -fsSL https://get.docker.com | sh
+    ├── 未安装 → 提示主人安装 Docker Desktop
     └── 未运行 → 提示主人启动 Docker Desktop
 ```
 
@@ -33,27 +30,7 @@
 ```
 运行: curl -s http://localhost:1200
 ├── 成功 → RSSHub 可用，继续
-└── 失败 → RSSHub 未部署
-    → 运行部署脚本: scripts/setup_rsshub.sh install
-    → 或手动部署:
-        mkdir -p .rsshub && cd .rsshub
-        cat > docker-compose.yml << EOF
-        version: "3"
-        services:
-          rsshub:
-            image: diygod/rsshub:latest
-            container_name: work-collect-rsshub
-            restart: always
-            ports:
-              - "1200:1200"
-            environment:
-              NODE_ENV: production
-              CACHE_TYPE: memory
-              CACHE_EXPIRE: 7200
-              ALLOWLIST: "/wechat"
-        EOF
-        docker compose up -d
-    → 等待启动完成后再验证
+└── 失败 → 运行部署脚本: scripts/setup_rsshub.sh install
 ```
 
 ### 3. 订阅源配置检查
@@ -63,24 +40,6 @@
 对每个 type=wechat 的源，检查:
 ├── wechat_id 不含"待补充" → ✅ 已配置
 └── wechat_id 含"待补充" → ⚠️ 提示主人补充
-    → 获取方法:
-      1. 打开 https://weixin.sogou.com 搜索公众号
-      2. 点击结果进入公众号主页
-      3. URL 中 __biz 参数即公众号 ID
-      4. 公众号微信号在主页可见
-    → 补充后更新 rss_url 字段
-```
-
-### 检查结果汇报
-
-```
-环境检查完成：
-  Docker: ✅/❌
-  RSSHub: ✅/❌ (http://localhost:1200)
-  微信源配置: X/6 已配置
-
-如果全部 ✅ → 进入正常工作模式
-如果有 ❌ → 告知主人缺失项，等待主人确认后再继续
 ```
 
 ## 文件路径规范
@@ -94,11 +53,6 @@
 ├── .rsshub/                  ← RSSHub Docker 配置（自动生成）
 ├── inbox/                    ← 新收录，待分类
 ├── collection/               ← 已分类收藏
-│   ├── 工作参考/
-│   │   ├── 医疗器械技术与行业/
-│   │   ├── 法规标准/
-│   │   └── 投资分析/
-│   └── 学习资料/
 ├── favorites/                ← 精选收藏
 ├── archive/                  ← 归档原文备份
 ├── subscriptions.json        ← 订阅源列表
@@ -107,11 +61,20 @@
 └── briefings/                ← 每日简报
 ```
 
+## 重点关注分类
+
+主人的核心关注方向，简报按此分类编排：
+
+1. **🧠 脑机接口** — 脑机接口、神经调控、DBS、帕金森、脑电信号等
+2. **🤖 手术机器人** — 手术机器人、微创手术、导航手术、达芬奇等
+3. **🔬 再生医学** — 干细胞、细胞疗法、基因治疗、类器官、组织工程等
+4. **📌 其他重点** — 不属于以上三类的其他重要内容
+
+分类顺序固定，不可调换。如有歧义，优先归入靠前的分类。
+
 ## 抓取逻辑（按内容类型区分）
 
 ### website 类型（网站）
-
-直接爬取网站 URL，提取最新文章列表。
 
 ```
 读取 url 字段 → 请求网页 → 解析文章列表 → 提取标题/链接/摘要
@@ -119,62 +82,29 @@
 
 ### wechat 类型（微信公众号）
 
-通过自建 RSSHub 获取 RSS feed，**不直接访问微信公众号**。
-
 ```
 读取 rss_url 字段 → 请求 RSSHub → 解析 RSS feed → 提取标题/链接/摘要
+→ 按关键词自动分类（脑机接口/手术机器人/再生医学/其他重点）
 
 降级策略：
   1. 首选 fetch_method（默认 sogou）
   2. 失败 → 按 fetch_config.sogou_fallback_order 顺序尝试备用源
-  3. 全部失败 → 标记本次抓取失败，记录到日志，简报中标注
+  3. 全部失败 → 标记本次抓取失败，简报中标注
 ```
 
 #### 单篇微信文章收藏
 
-收到 `mp.weixin.qq.com` 链接时：
-
 ```
-方式一：使用脚本（推荐）
-  python3 scripts/fetch_wechat_article.py <URL> --format markdown
+方式一（推荐）：
+  python3 scripts/fetch_wechat_article.py <URL> --format markdown --output inbox/{title}.md
 
-方式二：手动解析
+方式二（手动解析）：
   1. 请求文章页 HTML
-  2. 提取元信息：
-     - 标题：meta[property="og:title"]
-     - 作者：meta[name="author"]
-     - 公众号名：.wx_follow_nickname
-     - 发布时间：页面脚本中 ct 字段（Unix时间戳）
-  3. 提取正文：
-     - 主容器：#js_content
-     - 图片防盗链：data-src → src 替换
-     - 音频：mpvoice → <audio>
-     - 视频：iframe.video_iframe → 腾讯视频嵌入
+  2. 提取元信息：标题/作者/公众号名/发布时间
+  3. 提取正文：#js_content，图片防盗链 data-src → src
   4. 格式化为 Markdown
   5. 分类保存
 ```
-
-#### 新增微信公众号订阅源
-
-当主人确认新增微信订阅时，必须完成：
-
-```
-1. 获取公众号微信号（公众号设置中的微信号，非名称）
-2. 验证搜狗可搜到：https://weixin.sogou.com/weixin?type=2&query={微信号}
-3. 获取 __biz ID（从搜索结果链接中提取 __biz 参数）
-4. 更新 subscriptions.json：
-   - wechat_id: 微信号
-   - wechat_biz: __biz ID
-   - fetch_method: "sogou"
-   - rss_url: "{rsshub_base}/wechat/sogou/{wechat_id}"
-   - status: "active"
-5. 测试 rss_url 可访问性
-6. 更新 MEMORY.md 记录
-```
-
-### 其他类型（PDF/Word/图片等）
-
-按 SOUL.md 中「首次内容类型确认」流程处理。
 
 ## 每日简报流程
 
@@ -192,25 +122,18 @@
 ## RSSHub 管理命令
 
 ```bash
-# 部署/安装
-scripts/setup_rsshub.sh install
-
-# 启动/停止
-scripts/setup_rsshub.sh start
-scripts/setup_rsshub.sh stop
-
-# 检查状态
-scripts/setup_rsshub.sh status
-
-# 更新搜狗 Cookie（反爬触发验证码时）
-scripts/setup_rsshub.sh update_cookie "SNUID=xxx; SUID=xxx; ABTEST=0|xxx"
+scripts/setup_rsshub.sh install          # 部署
+scripts/setup_rsshub.sh start            # 启动
+scripts/setup_rsshub.sh stop             # 停止
+scripts/setup_rsshub.sh status           # 状态
+scripts/setup_rsshub.sh update_cookie "..." # 更新搜狗Cookie
 ```
 
 ## 协作规范
 
 - 处理完成后，向主助理（min麻小）汇报结果
 - 汇报格式：「【搜整助理】已完成：[任务内容]，保存至 [分类]"
-- 遇到不确定内容（平台限制、提取失败等），告知主助理，由主助理决定如何处理
+- 遇到不确定内容，告知主助理，由主助理决定如何处理
 
 ## 与主人的交互
 
@@ -223,4 +146,4 @@ scripts/setup_rsshub.sh update_cookie "SNUID=xxx; SUID=xxx; ABTEST=0|xxx"
 
 ## 首次内容类型确认
 
-每种内容类型（微信公众号/微博/小红书/网页/PDF/Word/图片）第一次处理时，整理后提交主人确认格式，确认后记录到 MEMORY.md 作为模板，后续自动套用。
+每种内容类型第一次处理时，整理后提交主人确认格式，确认后记录到 MEMORY.md 作为模板，后续自动套用。
