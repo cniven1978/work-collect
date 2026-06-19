@@ -1,6 +1,12 @@
 {
-  "version": "1.0",
-  "last_updated": "2026-04-06",
+  "version": "2.0",
+  "last_updated": "2026-06-16",
+  "rsshub_base": "http://localhost:1200",
+  "fetch_config": {
+    "request_interval_seconds": 30,
+    "cache_expire_seconds": 7200,
+    "sogou_fallback_order": ["sogou", "wechat2rss", "ershcimi"]
+  },
   "sources": [
     {
       "id": "vbdata",
@@ -30,10 +36,14 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "MedTalkofVascular",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/MedTalkofVascular",
       "added_at": "2026-04-05",
       "added_by": "主人（北京）",
-      "status": "pending",
-      "note": "待补充微信公众号URL"
+      "status": "active",
+      "note": "血管外科公众号"
     },
     {
       "id": "qbp",
@@ -63,6 +73,10 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "待补充微信号",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/待补充微信号",
       "added_at": "2026-04-05",
       "added_by": "主人（北京）",
       "status": "active",
@@ -74,10 +88,14 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "待补充微信号",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/待补充微信号",
       "added_at": "2026-04-06",
       "added_by": "主人",
-      "status": "pending",
-      "note": "医疗器械媒体报道先锋，专业分享医疗器械知识；待补充微信公众号URL"
+      "status": "active",
+      "note": "医疗器械媒体报道先锋，专业分享医疗器械知识"
     },
     {
       "id": "xiaojudeng",
@@ -85,10 +103,14 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "待补充微信号",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/待补充微信号",
       "added_at": "2026-04-06",
       "added_by": "主人",
-      "status": "pending",
-      "note": "病理/检验/IVD领域专业媒体；待补充微信公众号URL"
+      "status": "active",
+      "note": "病理/检验/IVD领域专业媒体"
     },
     {
       "id": "linkzg",
@@ -96,10 +118,14 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "待补充微信号",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/待补充微信号",
       "added_at": "2026-04-06",
       "added_by": "主人",
-      "status": "pending",
-      "note": "眼科和医疗服务、投融资；待补充微信公众号URL"
+      "status": "active",
+      "note": "眼科和医疗服务、投融资"
     },
     {
       "id": "yigongchaoren",
@@ -107,10 +133,14 @@
       "url": "",
       "platform": "微信公众号",
       "type": "wechat",
+      "wechat_id": "待补充微信号",
+      "wechat_biz": "待补充",
+      "fetch_method": "sogou",
+      "rss_url": "http://localhost:1200/wechat/sogou/待补充微信号",
       "added_at": "2026-04-06",
       "added_by": "主人",
-      "status": "pending",
-      "note": "超声行业专业媒体；待补充微信公众号URL"
+      "status": "active",
+      "note": "超声行业专业媒体"
     }
   ]
 }
